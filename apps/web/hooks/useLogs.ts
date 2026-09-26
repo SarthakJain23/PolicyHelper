@@ -1,7 +1,7 @@
 "use client";
 
+import { LogFilterParams, logsApi } from "@/lib/api/logs";
 import { useQuery } from "@tanstack/react-query";
-import { logsApi, LogFilterParams } from "@/lib/api/logs";
 
 export function useLogs(params?: LogFilterParams) {
   const query = useQuery({

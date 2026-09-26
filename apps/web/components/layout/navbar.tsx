@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ThemeToggle from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
+  Activity,
   BookOpen,
   Building2,
   FileText,
@@ -19,7 +20,6 @@ import {
   LogOut,
   MessageSquare,
   Users,
-  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -136,7 +136,10 @@ export default function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/change-password" className="flex items-center text-xs">
+                  <Link
+                    href="/change-password"
+                    className="flex items-center text-xs"
+                  >
                     <KeyRound className="mr-2 h-3.5 w-3.5" />
                     <span>Change Password</span>
                   </Link>

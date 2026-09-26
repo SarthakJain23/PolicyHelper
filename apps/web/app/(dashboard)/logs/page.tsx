@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
 import DashboardShell from "@/components/layout/dashboard-shell";
-import { useLogs } from "@/hooks/useLogs";
-import { useUsers } from "@/hooks/useUsers";
-import { useAuth } from "@/hooks/useAuth";
 import LogsTable from "@/components/logs/logs-table";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
+import { useLogs } from "@/hooks/useLogs";
+import { useUsers } from "@/hooks/useUsers";
 import { Activity, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 export default function LogsPage() {
   const { isSuperAdmin, isHrAdmin } = useAuth();
@@ -34,7 +40,11 @@ export default function LogsPage() {
           <div>
             <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 flex items-center space-x-2">
               <Activity className="h-5 w-5" />
-              <span>{isAdmin ? "User & System Activity Logs" : "My Activity History"}</span>
+              <span>
+                {isAdmin
+                  ? "User & System Activity Logs"
+                  : "My Activity History"}
+              </span>
             </h1>
             <p className="text-xs text-neutral-500 mt-0.5">
               {isAdmin
@@ -47,7 +57,10 @@ export default function LogsPage() {
             {/* User Filter for Admins */}
             {isAdmin && (
               <div className="w-44">
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                <Select
+                  value={selectedUserId}
+                  onValueChange={setSelectedUserId}
+                >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="All Users" />
                   </SelectTrigger>
@@ -72,12 +85,16 @@ export default function LogsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Actions</SelectItem>
                   <SelectItem value="LOGIN">Logins</SelectItem>
-                  <SelectItem value="CHANGE_PASSWORD">Password Changes</SelectItem>
+                  <SelectItem value="CHANGE_PASSWORD">
+                    Password Changes
+                  </SelectItem>
                   <SelectItem value="UPLOAD_DOCUMENT">Doc Uploads</SelectItem>
                   <SelectItem value="DELETE_DOCUMENT">Doc Deletions</SelectItem>
                   <SelectItem value="CREATE_USER">User Creation</SelectItem>
                   <SelectItem value="UPDATE_USER">User Updates</SelectItem>
-                  <SelectItem value="CREATE_DEPARTMENT">Dept Creation</SelectItem>
+                  <SelectItem value="CREATE_DEPARTMENT">
+                    Dept Creation
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -89,7 +106,9 @@ export default function LogsPage() {
               disabled={isRefetching}
               className="h-8 text-xs font-medium"
             >
-              <RefreshCw className={`mr-1.5 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`mr-1.5 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
+              />
               <span>Refresh</span>
             </Button>
           </div>
@@ -97,7 +116,9 @@ export default function LogsPage() {
 
         {/* Logs Table Content */}
         {isLoading ? (
-          <div className="p-8 text-center text-xs text-neutral-500">Loading activity logs...</div>
+          <div className="p-8 text-center text-xs text-neutral-500">
+            Loading activity logs...
+          </div>
         ) : (
           <LogsTable logs={logs} isAdmin={isAdmin} />
         )}
