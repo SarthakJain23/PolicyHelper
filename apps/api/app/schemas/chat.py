@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, AliasChoices
 
 
 class MessageCitationResponse(BaseModel):
@@ -12,8 +12,7 @@ class MessageCitationResponse(BaseModel):
     snippet: str
     relevance_score: float | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatMessageResponse(BaseModel):
@@ -23,13 +22,15 @@ class ChatMessageResponse(BaseModel):
     content: str
     prompt_tokens: int
     completion_tokens: int
-    metadata_: dict = Field(alias="metadata")
+    metadata: dict = Field(
+        default_factory=dict,
+        validation_alias=AliasChoices("metadata_", "metadata"),
+        serialization_alias="metadata",
+    )
     created_at: datetime
     citations: list[MessageCitationResponse] = []
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ChatSessionCreate(BaseModel):
@@ -54,12 +55,13 @@ class ChatSessionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatSessionDetailResponse(ChatSessionResponse):
     messages: list[ChatMessageResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatStreamRequest(BaseModel):

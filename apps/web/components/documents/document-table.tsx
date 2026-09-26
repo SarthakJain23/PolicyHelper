@@ -19,18 +19,25 @@ import {
   FileText,
   Loader2,
   MoreHorizontal,
+  RotateCw,
   Trash2,
 } from "lucide-react";
 
 interface DocumentTableProps {
   documents: DocumentItem[];
   onDelete: (id: string) => void;
+  onRetry?: (id: string) => void;
+  isRetrying?: boolean;
+  retryingId?: string;
   isHrAdmin: boolean;
 }
 
 export default function DocumentTable({
   documents,
   onDelete,
+  onRetry,
+  isRetrying,
+  retryingId,
   isHrAdmin,
 }: DocumentTableProps) {
   if (documents.length === 0) {
@@ -48,11 +55,8 @@ export default function DocumentTable({
     );
   }
 
-  const renderStatus = (
-    status: DocumentItem["status"],
-    errorMsg: string | null,
-  ) => {
-    switch (status) {
+  const renderStatus = (doc: DocumentItem) => {
+    switch (doc.status) {
       case "INDEXED":
         return (
           <Badge variant="success" className="space-x-1">
@@ -76,14 +80,43 @@ export default function DocumentTable({
         );
       case "FAILED":
         return (
-          <Badge
-            variant="destructive"
-            className="space-x-1"
-            title={errorMsg || "Failed"}
-          >
-            <AlertCircle className="h-3 w-3" />
-            <span>Failed</span>
-          </Badge>
+          <div className="flex flex-col gap-1 items-start">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Badge
+                variant="destructive"
+                className="space-x-1 cursor-help"
+                title={doc.error_message || "Ingestion failed"}
+              >
+                <AlertCircle className="h-3 w-3" />
+                <span>Failed</span>
+              </Badge>
+              {isHrAdmin && onRetry && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRetry(doc.id)}
+                  disabled={isRetrying && retryingId === doc.id}
+                  className="h-5 px-1.5 text-[10px] font-medium border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                  title="Retry Ingestion"
+                >
+                  {isRetrying && retryingId === doc.id ? (
+                    <Loader2 className="h-2.5 w-2.5 animate-spin mr-1" />
+                  ) : (
+                    <RotateCw className="h-2.5 w-2.5 mr-1" />
+                  )}
+                  <span>Retry</span>
+                </Button>
+              )}
+            </div>
+            {doc.error_message && (
+              <p
+                className="text-[10px] text-red-500 max-w-56 truncate"
+                title={doc.error_message}
+              >
+                {doc.error_message}
+              </p>
+            )}
+          </div>
         );
     }
   };
@@ -130,9 +163,7 @@ export default function DocumentTable({
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
                   {doc.department ? doc.department.name : "Company-Wide"}
                 </td>
-                <td className="px-4 py-3">
-                  {renderStatus(doc.status, doc.error_message)}
-                </td>
+                <td className="px-4 py-3">{renderStatus(doc)}</td>
                 <td className="px-4 py-3 text-neutral-500">
                   <span>{formatBytes(doc.file_size)}</span>
                   {doc.status === "INDEXED" && (
@@ -163,6 +194,16 @@ export default function DocumentTable({
                           <span>Download / View</span>
                         </a>
                       </DropdownMenuItem>
+                      {isHrAdmin && onRetry && doc.status === "FAILED" && (
+                        <DropdownMenuItem
+                          onClick={() => onRetry(doc.id)}
+                          disabled={isRetrying && retryingId === doc.id}
+                          className="text-xs text-amber-600 focus:text-amber-600"
+                        >
+                          <RotateCw className="mr-2 h-3.5 w-3.5" />
+                          <span>Retry Ingestion</span>
+                        </DropdownMenuItem>
+                      )}
                       {isHrAdmin && (
                         <DropdownMenuItem
                           onClick={() => onDelete(doc.id)}

@@ -12,7 +12,7 @@ class GeminiProvider(LLMProviderService):
         api_key: str,
         chat_model: str = "gemini-1.5-pro",
         fast_model: str = "gemini-1.5-flash",
-        embedding_model: str = "models/text-embedding-004",
+        embedding_model: str = "gemini-embedding-001",
     ):
         if not api_key:
             raise ValueError("api_key must be provided to instantiate GeminiProvider")
@@ -51,8 +51,18 @@ class GeminiProvider(LLMProviderService):
         model_name: str | None = None,
         dimensions: int | None = None,
     ) -> Embeddings:
+        selected_model = model_name or self.embedding_model
+        # Map deprecated models if any
+        if selected_model in ("models/text-embedding-004", "text-embedding-004"):
+            selected_model = "gemini-embedding-001"
+
+        kwargs: dict = {}
+        if dimensions:
+            kwargs["output_dimensionality"] = dimensions
+
         return GoogleGenerativeAIEmbeddings(
-            model=model_name or self.embedding_model,
+            model=selected_model,
             google_api_key=self.api_key,
+            **kwargs,
         )
 

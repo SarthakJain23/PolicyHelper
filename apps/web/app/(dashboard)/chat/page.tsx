@@ -14,14 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useChatSessions } from "@/hooks/useChatSessions";
+import { useChatSession, useChatSessions } from "@/hooks/useChatSessions";
 import { useChatStream } from "@/hooks/useChatStream";
 import { useLLMConfig } from "@/hooks/useLLMConfig";
-import { chatApi } from "@/lib/api/chat";
 import { MessageCitation } from "@/lib/api/types";
-import { useQuery } from "@tanstack/react-query";
 import { PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ChatPage() {
   const { sessions, createSession, isCreating, updateSession, deleteSession } =
@@ -32,39 +30,25 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
-  // Sync selected model from dynamic models endpoint
-  useEffect(() => {
-    if (availableModels && !selectedModel) {
-      setSelectedModel(
-        availableModels.default_model ||
-          availableModels.chat_models[0]?.id ||
-          "gpt-4o",
-      );
-    }
-  }, [availableModels, selectedModel]);
+  const activeModel =
+    selectedModel ||
+    availableModels?.default_model ||
+    availableModels?.chat_models[0]?.id ||
+    "gpt-4o";
+
+  const effectiveSessionId =
+    activeSessionId ?? (sessions.length > 0 ? sessions[0].id : null);
 
   // Citation Drawer State
   const [selectedCitation, setSelectedCitation] =
     useState<MessageCitation | null>(null);
   const [citationDrawerOpen, setCitationDrawerOpen] = useState(false);
 
-  // Auto-select first session if none selected
-  useEffect(() => {
-    if (!activeSessionId && sessions.length > 0) {
-      setActiveSessionId(sessions[0].id);
-    }
-  }, [sessions, activeSessionId]);
-
-  // Load session messages
-  const sessionDetailQuery = useQuery({
-    queryKey: ["chat", "session", activeSessionId],
-    queryFn: () =>
-      activeSessionId ? chatApi.getSession(activeSessionId) : null,
-    enabled: !!activeSessionId,
-  });
+  // Load session messages via TanStack Query hook
+  const sessionDetailQuery = useChatSession(effectiveSessionId);
 
   const { sendMessage, isStreaming, streamingContent, streamingCitations } =
-    useChatStream(activeSessionId);
+    useChatStream(effectiveSessionId);
 
   const handleCreateNewSession = async () => {
     const newSession = await createSession({ title: "New Conversation" });
@@ -73,22 +57,31 @@ export default function ChatPage() {
     }
   };
 
+  const handleDeleteSession = async (id: string) => {
+    await deleteSession(id);
+    if (effectiveSessionId === id) {
+      const remaining = sessions.filter((s) => s.id !== id);
+      setActiveSessionId(remaining[0]?.id || null);
+    }
+  };
+
   const handleSendMessage = async (text: string) => {
     const options = {
-      model: selectedModel || undefined,
+      model: activeModel || undefined,
       provider: availableModels?.provider,
     };
 
-    if (!activeSessionId) {
-      const newSession = await createSession({ title: text.slice(0, 30) });
+    let targetId = effectiveSessionId;
+    if (!targetId) {
+      const newSession = await createSession({ title: "New Conversation" });
       if (newSession) {
+        targetId = newSession.id;
         setActiveSessionId(newSession.id);
-        // Short delay to let state settle
-        setTimeout(() => sendMessage(text, options), 100);
+      } else {
+        return;
       }
-    } else {
-      await sendMessage(text, options);
     }
+    await sendMessage(text, options, targetId);
   };
 
   const handleCitationClick = (citation: MessageCitation) => {
@@ -105,11 +98,11 @@ export default function ChatPage() {
         {sidebarOpen && (
           <SessionList
             sessions={sessions}
-            activeSessionId={activeSessionId}
+            activeSessionId={effectiveSessionId}
             onSelectSession={(id) => setActiveSessionId(id)}
             onCreateSession={handleCreateNewSession}
             onUpdateSession={(id, payload) => updateSession({ id, payload })}
-            onDeleteSession={(id) => deleteSession(id)}
+            onDeleteSession={handleDeleteSession}
             isCreating={isCreating}
           />
         )}
@@ -143,7 +136,7 @@ export default function ChatPage() {
               <Sparkles className="h-3.5 w-3.5 text-amber-500 hidden sm:inline-block" />
               {availableModels && availableModels.chat_models.length > 0 ? (
                 <Select
-                  value={selectedModel}
+                  value={activeModel}
                   onValueChange={(val) => setSelectedModel(val)}
                 >
                   <SelectTrigger className="h-7 text-xs px-2.5 py-0 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 rounded-md min-w-36">

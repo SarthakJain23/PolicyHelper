@@ -42,6 +42,19 @@ export function useDocuments(category?: string, departmentId?: string) {
     },
   });
 
+  const retryMutation = useMutation({
+    mutationFn: (id: string) => documentsApi.retry(id),
+    onSuccess: (updatedDoc) => {
+      toast.success(`Retrying ingestion for "${updatedDoc.title}"...`);
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    },
+    onError: (err: any) => {
+      toast.error(
+        err.response?.data?.detail || "Failed to retry document ingestion",
+      );
+    },
+  });
+
   return {
     documents: query.data || [],
     isLoading: query.isLoading,
@@ -50,5 +63,8 @@ export function useDocuments(category?: string, departmentId?: string) {
     isUploading: uploadMutation.isPending,
     deleteDocument: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
+    retryDocument: retryMutation.mutateAsync,
+    isRetrying: retryMutation.isPending,
+    retryingId: retryMutation.variables as string | undefined,
   };
 }

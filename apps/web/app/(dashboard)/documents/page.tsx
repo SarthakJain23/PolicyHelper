@@ -19,6 +19,9 @@ export default function DocumentsPage() {
     uploadDocument,
     isUploading,
     deleteDocument,
+    retryDocument,
+    isRetrying,
+    retryingId,
   } = useDocuments();
   const { departments } = useDepartments();
 
@@ -87,6 +90,9 @@ export default function DocumentsPage() {
           <DocumentTable
             documents={documents}
             onDelete={(id) => deleteDocument(id)}
+            onRetry={(id) => retryDocument(id)}
+            isRetrying={isRetrying}
+            retryingId={retryingId}
             isHrAdmin={isSuperAdmin || isHrAdmin}
           />
         )}

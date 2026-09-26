@@ -39,8 +39,8 @@ FALLBACK_MODELS = {
             {"id": "gemini-2.0-flash-exp", "name": "Gemini 2.0 Flash (Next-Gen)", "category": "fast"},
         ],
         "embedding": [
-            {"id": "models/text-embedding-004", "name": "Google Text Embedding 004 (768 dims)", "dimensions": 768},
-            {"id": "models/embedding-001", "name": "Google Embedding 001 (768 dims)", "dimensions": 768},
+            {"id": "gemini-embedding-001", "name": "Google Gemini Embedding 001 (1536 dims)", "dimensions": 1536},
+            {"id": "gemini-embedding-2", "name": "Google Gemini Embedding 2 (3072 dims)", "dimensions": 3072},
         ],
     },
 }
@@ -265,10 +265,12 @@ class ModelDiscoveryService:
                             "category": cat,
                         })
                     elif "embedContent" in methods or "batchEmbedContents" in methods:
+                        clean_emb_id = clean_id
+                        dims = 3072 if "embedding-2" in clean_emb_id else 1536
                         embedding_models.append({
-                            "id": model_name,
-                            "name": f"{display_name} ({model_name})",
-                            "dimensions": 768,
+                            "id": clean_emb_id,
+                            "name": f"{display_name} ({clean_emb_id})",
+                            "dimensions": dims,
                         })
 
                 if not chat_models:

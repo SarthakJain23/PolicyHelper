@@ -243,6 +243,76 @@ async def download_document(
     )
 
 
+@router.post("/{document_id}/retry", response_model=DocumentResponse, status_code=status.HTTP_202_ACCEPTED)
+async def retry_document_ingestion(
+    document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Retry parsing, chunking, and embedding ingestion for a failed or existing document.
+    """
+    stmt = (
+        select(Document)
+        .where(Document.id == document_id)
+        .options(selectinload(Document.department))
+    )
+    res = await db.execute(stmt)
+    doc = res.scalar_one_or_none()
+
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    if doc.status != DocumentStatus.FAILED.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only failed documents can be retried.",
+        )
+
+    # 1. Reset document status to PENDING and clear previous error message
+    doc.status = DocumentStatus.PENDING.value
+    doc.error_message = None
+
+    audit_entry = AuditLog(
+        user_id=current_user.id,
+        action="RETRY_DOCUMENT_INGESTION",
+        details={"document_id": str(document_id), "title": doc.title},
+    )
+    db.add(audit_entry)
+
+    await db.commit()
+    await db.refresh(doc)
+
+    # 2. Trigger background ingestion
+    background_tasks.add_task(process_document_ingestion, doc.id)
+
+    # Count existing chunks (if any)
+    chunk_count_stmt = select(func.count(DocumentChunk.id)).where(DocumentChunk.document_id == doc.id)
+    chunk_count = (await db.execute(chunk_count_stmt)).scalar_one() or 0
+
+    return DocumentResponse(
+        id=doc.id,
+        title=doc.title,
+        file_name=doc.file_name,
+        file_type=doc.file_type,
+        file_size=doc.file_size,
+        category=doc.category,
+        department_id=doc.department_id,
+        department=doc.department,
+        allowed_role_names=doc.allowed_role_names,
+        status=doc.status,
+        error_message=doc.error_message,
+        uploaded_by=doc.uploaded_by,
+        created_at=doc.created_at,
+        updated_at=doc.updated_at,
+        chunk_count=chunk_count,
+    )
+
+
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     document_id: uuid.UUID,

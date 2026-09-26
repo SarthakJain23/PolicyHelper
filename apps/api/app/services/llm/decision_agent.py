@@ -107,11 +107,13 @@ class LLMDecisionAgent:
             api_key = decrypt_api_key(cfg.encrypted_api_key)
             if not api_key:
                 raise ValueError("Failed to decrypt API key for Gemini provider.")
-            embedding_model = custom_model or cfg.default_embedding_model or "models/text-embedding-004"
+            embedding_model = custom_model or cfg.default_embedding_model or "gemini-embedding-001"
+            dimensions = custom_dimensions or cfg.embedding_dimensions or 1536
             if not embedding_model:
                 raise ValueError("Embedding model must be specified for Gemini provider.")
             return GeminiProvider(api_key=api_key).get_embeddings_model(
                 model_name=embedding_model,
+                dimensions=dimensions,
             )
 
         # 3. Check Anthropic config (falls back to OpenAI embeddings model)

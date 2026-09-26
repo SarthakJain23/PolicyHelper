@@ -75,3 +75,12 @@ export function useChatSessions(includeArchived = false) {
     isDeleting: deleteSessionMutation.isPending,
   };
 }
+
+export function useChatSession(sessionId: string | null) {
+  return useQuery({
+    queryKey: ["chat", "session", sessionId],
+    queryFn: () => (sessionId ? chatApi.getSession(sessionId) : null),
+    enabled: !!sessionId,
+  });
+}
+

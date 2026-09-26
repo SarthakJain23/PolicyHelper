@@ -97,8 +97,8 @@ export default function SettingsPage() {
         setSelectedEmbeddingModel("text-embedding-3-small");
         setSelectedDimensions(1536);
       } else if (selectedProvider === "gemini") {
-        setSelectedEmbeddingModel("models/text-embedding-004");
-        setSelectedDimensions(768);
+        setSelectedEmbeddingModel("gemini-embedding-001");
+        setSelectedDimensions(1536);
       } else {
         setSelectedEmbeddingModel("text-embedding-3-small");
         setSelectedDimensions(1536);

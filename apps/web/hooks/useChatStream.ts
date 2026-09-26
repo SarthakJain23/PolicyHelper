@@ -24,8 +24,10 @@ export function useChatStream(sessionId: string | null) {
     async (
       content: string,
       options?: { model?: string; provider?: string },
+      targetSessionId?: string,
     ) => {
-      if (!sessionId || !content.trim() || isStreaming) return;
+      const effectiveSessionId = targetSessionId || sessionId;
+      if (!effectiveSessionId || !content.trim() || isStreaming) return;
 
       setIsStreaming(true);
       setStreamingContent("");
@@ -34,7 +36,7 @@ export function useChatStream(sessionId: string | null) {
       // Optimistically append user message in local react query cache
       const tempUserMessage: ChatMessage = {
         id: `temp-${Date.now()}`,
-        session_id: sessionId,
+        session_id: effectiveSessionId,
         sender: "USER",
         content: content.trim(),
         prompt_tokens: 0,
@@ -45,9 +47,21 @@ export function useChatStream(sessionId: string | null) {
       };
 
       queryClient.setQueryData(
-        ["chat", "session", sessionId],
+        ["chat", "session", effectiveSessionId],
         (oldData: any) => {
-          if (!oldData) return oldData;
+          if (!oldData) {
+            return {
+              id: effectiveSessionId,
+              title: "New Conversation",
+              messages: [tempUserMessage],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              message_count: 1,
+              is_title_auto_generated: false,
+              is_pinned: false,
+              is_archived: false,
+            };
+          }
           return {
             ...oldData,
             messages: [...(oldData.messages || []), tempUserMessage],
@@ -57,7 +71,7 @@ export function useChatStream(sessionId: string | null) {
 
       try {
         const response = await fetch(
-          `${API_BASE_URL}/chat/sessions/${sessionId}/stream`,
+          `${API_BASE_URL}/chat/sessions/${effectiveSessionId}/stream`,
           {
             method: "POST",
             headers: {
@@ -134,7 +148,7 @@ export function useChatStream(sessionId: string | null) {
         setStreamingCitations([]);
         // Re-sync authoritative message list from DB
         queryClient.invalidateQueries({
-          queryKey: ["chat", "session", sessionId],
+          queryKey: ["chat", "session", effectiveSessionId],
         });
         queryClient.invalidateQueries({ queryKey: ["chat", "sessions"] });
       }
