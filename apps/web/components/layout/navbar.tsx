@@ -19,6 +19,7 @@ import {
   KeyRound,
   LogOut,
   MessageSquare,
+  Settings as SettingsIcon,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,6 +45,12 @@ export default function Navbar() {
     },
     { label: "Users & Access", href: "/users", icon: Users, requireRole: "HR" },
     { label: "Activity Logs", href: "/logs", icon: Activity },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: SettingsIcon,
+      requireRole: "HR",
+    },
   ];
 
   const visibleItems = navItems.filter((item) => {

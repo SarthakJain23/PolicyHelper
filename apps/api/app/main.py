@@ -67,5 +67,4 @@ async def health_check():
         "status": "healthy",
         "service": "policyhelper-api",
         "storage_type": settings.STORAGE_TYPE,
-        "llm_provider": settings.LLM_PROVIDER,
     }

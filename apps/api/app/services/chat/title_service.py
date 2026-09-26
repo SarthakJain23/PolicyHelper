@@ -5,7 +5,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 
 from app.core.database import AsyncSessionLocal
 from app.models.chat import ChatSession
-from app.services.llm.factory import get_llm_provider
+from app.services.llm.factory import LLMProviderFactory
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ async def generate_session_title_async(session_id: uuid.UUID, first_user_query: 
     """
     Background worker:
     Summarizes the user's initial question into a concise 3-5 word title and updates chat_sessions table.
+    Uses the LangChain Decision Agent to select the fastest model based on active provider credentials.
     """
     async with AsyncSessionLocal() as db:
         session = await db.get(ChatSession, session_id)
@@ -21,8 +22,7 @@ async def generate_session_title_async(session_id: uuid.UUID, first_user_query: 
             return None
 
         try:
-            llm_provider = get_llm_provider()
-            fast_model = llm_provider.get_fast_model(temperature=0.3)
+            fast_model = await LLMProviderFactory.get_fast_model(db=db, temperature=0.3)
 
             prompt = (
                 "You are an expert title generator for a corporate policy chatbot. "

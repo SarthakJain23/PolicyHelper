@@ -29,6 +29,22 @@ from app.schemas.chat import (
     ChatStreamRequest,
     MessageCitationResponse,
 )
+from app.schemas.organization import (
+    OrganizationCreate,
+    OrganizationUpdate,
+    OrganizationResponse,
+)
+from app.schemas.llm_config import (
+    DiscoveredModel,
+    DiscoveredEmbeddingModel,
+    TestAndDiscoverRequest,
+    TestAndDiscoverResponse,
+    LLMConfigSaveRequest,
+    LLMConfigResponse,
+    OrganizationModelsResponse,
+    ReindexRequest,
+    ReindexStatusResponse,
+)
 from app.schemas.audit import AuditLogResponse
 
 __all__ = [
@@ -36,6 +52,18 @@ __all__ = [
     "TokenResponse",
     "ChangePasswordRequest",
     "RefreshTokenRequest",
+    "OrganizationCreate",
+    "OrganizationUpdate",
+    "OrganizationResponse",
+    "DiscoveredModel",
+    "DiscoveredEmbeddingModel",
+    "TestAndDiscoverRequest",
+    "TestAndDiscoverResponse",
+    "LLMConfigSaveRequest",
+    "LLMConfigResponse",
+    "OrganizationModelsResponse",
+    "ReindexRequest",
+    "ReindexStatusResponse",
     "DepartmentCreate",
     "DepartmentUpdate",
     "DepartmentResponse",
@@ -54,4 +82,11 @@ __all__ = [
     "ChatStreamRequest",
     "MessageCitationResponse",
     "AuditLogResponse",
+    "ChatSessionUpdate",
+    "ChatSessionResponse",
+    "ChatSessionDetailResponse",
+    "ChatStreamRequest",
+    "MessageCitationResponse",
+    "AuditLogResponse",
 ]
+

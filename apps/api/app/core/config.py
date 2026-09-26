@@ -53,33 +53,13 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str = "policies"
     S3_REGION: str = "us-east-1"
 
-    # LLM Provider Strategy ("openai", "anthropic", "gemini", "google")
-    LLM_PROVIDER: Literal["openai", "anthropic", "gemini", "google"] = "gemini"
-
-    # OpenAI Settings
-    OPENAI_API_KEY: str = ""
-    OPENAI_CHAT_MODEL: str = "gpt-4o"
-    OPENAI_FAST_MODEL: str = "gpt-4o-mini"
-    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
-    OPENAI_EMBEDDING_DIMENSIONS: int = 1536
-
-    # Anthropic Settings
-    ANTHROPIC_API_KEY: str = ""
-    ANTHROPIC_CHAT_MODEL: str = "claude-3-5-sonnet-20241022"
-
-    # Google Gemini Settings
-    GEMINI_API_KEY: str = ""
-    GOOGLE_API_KEY: str = ""
-    GEMINI_CHAT_MODEL: str = "gemini-1.5-pro"
-    GEMINI_FAST_MODEL: str = "gemini-1.5-flash"
-    GEMINI_EMBEDDING_MODEL: str = "models/text-embedding-004"
-
     # RAG Settings
     CHUNK_SIZE: int = 800
     CHUNK_OVERLAP: int = 120
     RETRIEVAL_TOP_K: int = 15
     RERANK_TOP_K: int = 4
     AUTO_TITLE_MESSAGE_THRESHOLD: int = 2
+    DEFAULT_EMBEDDING_DIMENSIONS: int = 1536
 
 
 settings = Settings()

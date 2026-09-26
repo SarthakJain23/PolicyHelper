@@ -173,6 +173,8 @@ async def stream_chat_response(
             user_message_content=request.content.strip(),
             current_user=current_user,
             db=db,
+            model_name=request.model,
+            provider_name=request.provider,
         ),
         media_type="text/event-stream",
         headers={

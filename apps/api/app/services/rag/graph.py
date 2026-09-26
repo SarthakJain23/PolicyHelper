@@ -7,7 +7,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.models.user import User
 from app.models.chat import ChatSession, ChatMessage, MessageCitation, MessageSender
-from app.services.llm.factory import get_llm_provider
+from app.services.llm.factory import LLMProviderFactory
 from app.services.rag.retrieval import HybridRetriever, RetrievedChunk
 from app.services.chat.title_service import generate_session_title_async
 
@@ -35,9 +35,12 @@ async def stream_rag_chat(
     user_message_content: str,
     current_user: User,
     db: AsyncSession,
+    model_name: str | None = None,
+    provider_name: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """
     Executes LangChain / LangGraph RAG workflow and yields Server-Sent Events (SSE).
+    Dynamically routes to user-selected model & provider.
     Format:
       data: {"event": "citation", "data": {...}}\n\n
       data: {"event": "token", "data": {"content": "..."}}\n\n
@@ -51,6 +54,9 @@ async def stream_rag_chat(
     if not session:
         yield f"data: {json.dumps({'event': 'error', 'data': {'message': 'Session not found'}})}\n\n"
         return
+
+    if model_name:
+        session.selected_model = model_name
 
     # 2. Persist User Message to DB
     user_msg = ChatMessage(
@@ -99,9 +105,14 @@ async def stream_rag_chat(
         else:
             context_str = "No matching policy documents found in the database."
 
-        # 6. Stream LLM Response
-        llm_provider = get_llm_provider()
-        chat_model = llm_provider.get_chat_model(temperature=0.1, streaming=True)
+        # 6. Stream LLM Response with dynamically selected model
+        chat_model = await LLMProviderFactory.get_chat_model(
+            db=db,
+            provider_name=provider_name,
+            model_name=model_name or session.selected_model,
+            temperature=0.1,
+            streaming=True,
+        )
 
         system_instruction = RAG_SYSTEM_PROMPT.format(context=context_str)
         messages = [

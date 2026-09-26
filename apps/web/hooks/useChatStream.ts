@@ -21,7 +21,10 @@ export function useChatStream(sessionId: string | null) {
   >([]);
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (
+      content: string,
+      options?: { model?: string; provider?: string },
+    ) => {
       if (!sessionId || !content.trim() || isStreaming) return;
 
       setIsStreaming(true);
@@ -61,7 +64,11 @@ export function useChatStream(sessionId: string | null) {
               "Content-Type": "application/json",
             },
             credentials: "include", // Sends HttpOnly auth cookies with the request automatically
-            body: JSON.stringify({ content: content.trim() }),
+            body: JSON.stringify({
+              content: content.trim(),
+              model: options?.model,
+              provider: options?.provider,
+            }),
           },
         );
 

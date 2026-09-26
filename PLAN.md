@@ -109,7 +109,7 @@ graph TD
   - Implement `OpenAIProvider` (`ChatOpenAI`, `OpenAIEmbeddings`).
   - Implement `AnthropicProvider` (`ChatAnthropic`, OpenAI/compatible embeddings).
   - Implement `GeminiProvider` (`ChatGoogleGenerativeAI`, `GoogleGenerativeAIEmbeddings`).
-  - Implement `LLMProviderFactory` selecting strategy via `LLM_PROVIDER`.
+  - Implement `LLMProviderFactory` dynamically resolving strategies from encrypted database records.
 - [ ] **4.3 LangGraph Ingestion Pipeline (`apps/api/app/services/ingestion/`)**
   - Document loaders for `.pdf`, `.docx`, `.md`, `.txt`.
   - Markdown table and structure normalization.

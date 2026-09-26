@@ -26,6 +26,7 @@ class ChatSession(Base):
         index=True,
     )
     title: Mapped[str] = mapped_column(String(255), default="New Conversation", nullable=False)
+    selected_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
     message_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_title_auto_generated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

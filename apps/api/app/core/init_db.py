@@ -7,6 +7,7 @@ from app.core.security import get_password_hash
 from app.models.role import Role
 from app.models.department import Department
 from app.models.user import User
+from app.models.organization import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -103,5 +104,18 @@ async def init_db_data() -> None:
             # Ensure password hash is fresh for default super admin
             existing_admin.password_hash = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
             existing_admin.is_active = True
+
+        # 4. Seed Default Organization
+        org_stmt = select(Organization).where(Organization.slug == "default")
+        default_org = (await session.execute(org_stmt)).scalar_one_or_none()
+        if not default_org:
+            default_org = Organization(
+                name="Default Organization",
+                slug="default",
+                is_active=True,
+            )
+            session.add(default_org)
+            await session.flush()
+            logger.info("Seeded default organization: Default Organization")
 
         await session.commit()

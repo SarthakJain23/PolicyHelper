@@ -46,6 +46,7 @@ class ChatSessionResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
     title: str
+    selected_model: str | None = None
     message_count: int
     is_title_auto_generated: bool
     is_pinned: bool
@@ -63,3 +64,6 @@ class ChatSessionDetailResponse(ChatSessionResponse):
 
 class ChatStreamRequest(BaseModel):
     content: str = Field(..., min_length=1)
+    model: str | None = None
+    provider: str | None = None
+

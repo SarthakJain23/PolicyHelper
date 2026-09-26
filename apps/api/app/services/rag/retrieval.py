@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.chunk import DocumentChunk
 from app.models.document import Document, DocumentStatus
-from app.services.llm.factory import get_llm_provider
+from app.services.llm.factory import LLMProviderFactory
 
 
 class RetrievedChunk(TypedDict):
@@ -35,9 +35,8 @@ class HybridRetriever:
     ) -> list[RetrievedChunk]:
         is_admin = any(r in ["SUPER_ADMIN", "HR_ADMIN"] for r in user_roles)
 
-        # 1. Generate query embedding
-        llm_provider = get_llm_provider()
-        embeddings_model = llm_provider.get_embeddings_model()
+        # 1. Generate query embedding dynamically
+        embeddings_model = await LLMProviderFactory.get_embeddings(db=db)
         query_vector = await embeddings_model.aembed_query(query)
 
         # 2. Vector search query using pgvector cosine distance (<=>)

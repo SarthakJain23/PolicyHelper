@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Text, Integer, DateTime, ForeignKey, Index, Computed
+from sqlalchemy import Text, Integer, DateTime, ForeignKey, Index, Computed, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB, TSVECTOR
 from pgvector.sqlalchemy import Vector
@@ -24,8 +24,9 @@ class DocumentChunk(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict, nullable=False)
     
-    # Vector embedding column (e.g. 1536 for OpenAI / compatible)
-    embedding = mapped_column(Vector(settings.OPENAI_EMBEDDING_DIMENSIONS), nullable=True)
+    # Vector embedding column (default dimension: 1536)
+    embedding = mapped_column(Vector(settings.DEFAULT_EMBEDDING_DIMENSIONS), nullable=True)
+    embedding_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Generated column for Full-Text Search
     search_vector = mapped_column(

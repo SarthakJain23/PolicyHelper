@@ -7,7 +7,7 @@ from app.core.database import AsyncSessionLocal
 from app.models.document import Document, DocumentStatus
 from app.models.chunk import DocumentChunk
 from app.services.storage.factory import get_storage
-from app.services.llm.factory import get_llm_provider
+from app.services.llm.factory import LLMProviderFactory
 from app.services.ingestion.parser import DocumentParser
 from app.services.ingestion.chunker import PolicyChunker
 
@@ -54,9 +54,8 @@ async def process_document_ingestion(document_id: uuid.UUID) -> None:
             if not chunk_results:
                 raise ValueError("Document yielded 0 chunks after splitting")
 
-            # 4. Generate batch embeddings
-            llm_provider = get_llm_provider()
-            embeddings_model = llm_provider.get_embeddings_model()
+            # 4. Generate batch embeddings using active organization embedding model
+            embeddings_model = await LLMProviderFactory.get_embeddings(db=session)
             chunk_texts = [c["content"] for c in chunk_results]
 
             # Embedding API call
