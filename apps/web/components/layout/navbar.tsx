@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
   Activity,
+  ArrowLeft,
   BookOpen,
   Building2,
   FileText,
@@ -100,7 +101,22 @@ export default function Navbar() {
         </div>
 
         {/* Action Controls & User Account Menu */}
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2 sm:space-x-2.5">
+          {pathname !== "/chat" && (
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="h-8 px-2.5 text-xs font-medium gap-1.5 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              <Link href="/chat">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Back to Main Page</span>
+                <span className="sm:hidden">Back</span>
+              </Link>
+            </Button>
+          )}
+
           <ThemeToggle />
 
           {user ? (
@@ -136,6 +152,12 @@ export default function Navbar() {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/chat" className="flex items-center text-xs">
+                    <MessageSquare className="mr-2 h-3.5 w-3.5" />
+                    <span>Policy Chat (Main Page)</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/logs" className="flex items-center text-xs">
                     <Activity className="mr-2 h-3.5 w-3.5" />
