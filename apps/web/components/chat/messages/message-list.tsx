@@ -34,8 +34,8 @@ export default function MessageList({
   }
 
   return (
-    <ScrollArea className="flex-1 px-4 sm:px-8 py-4">
-      <div className="max-w-3xl mx-auto space-y-2">
+    <ScrollArea className="flex-1 min-h-0 h-full w-full">
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-4 space-y-2">
         {messages.map((msg) => (
           <MessageItem
             key={msg.id}

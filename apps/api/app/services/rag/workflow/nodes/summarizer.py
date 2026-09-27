@@ -2,6 +2,7 @@ import logging
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig
 from app.services.llm.factory import LLMProviderFactory
+from app.services.llm.utils import extract_text_content
 from app.services.rag.workflow.state import GraphState
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ async def summarizer_node(state: GraphState, config: RunnableConfig) -> dict:
         )
 
         response = await fast_model.ainvoke([HumanMessage(content=prompt)])
-        new_summary = response.content.strip()
+        new_summary = extract_text_content(response.content).strip()
 
         logger.info(f"Updated conversation summary for session {state.get('session_id')}")
         return {

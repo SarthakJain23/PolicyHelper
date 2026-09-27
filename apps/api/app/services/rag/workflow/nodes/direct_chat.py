@@ -2,6 +2,7 @@ import logging
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.runnables import RunnableConfig
 from app.services.llm.factory import LLMProviderFactory
+from app.services.llm.utils import extract_text_content
 from app.services.rag.workflow.state import GraphState
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ async def direct_chat_node(state: GraphState, config: RunnableConfig) -> dict:
         prompt_messages.append(HumanMessage(content=raw_query))
 
         response = await chat_model.ainvoke(prompt_messages)
-        content_text = response.content if isinstance(response.content, str) else str(response.content)
+        content_text = extract_text_content(response.content)
 
         return {
             "generation": content_text,

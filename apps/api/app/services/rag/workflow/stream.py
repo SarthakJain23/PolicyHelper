@@ -10,6 +10,7 @@ from app.core.security import extract_user_roles
 from app.models.user import User
 from app.models.chat import ChatSession, ChatMessage, MessageCitation, MessageSender
 from app.services.chat.title_service import generate_session_title_async
+from app.services.llm.utils import extract_text_content
 from app.services.rag.workflow.state import GraphState
 from app.services.rag.workflow.builder import build_chat_graph
 
@@ -232,9 +233,14 @@ class ChatStreamService:
 
                 # Real-time LLM Token Chunks from generator_node or direct_chat_node
                 elif kind == "on_chat_model_stream":
+                    # Ensure tokens are only captured from actual answer-generating nodes
+                    node_name = event.get("metadata", {}).get("langgraph_node")
+                    if node_name and node_name not in ("generator", "direct_chat"):
+                        continue
+
                     chunk = event.get("data", {}).get("chunk")
                     if chunk:
-                        token_text = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                        token_text = extract_text_content(getattr(chunk, "content", chunk))
                         if token_text:
                             full_response_text += token_text
                             yield self.format_sse_event("token", {"content": token_text})
@@ -247,8 +253,9 @@ class ChatStreamService:
 
             # Handle static fallback or guardrail text if no tokens were streamed
             if not full_response_text and last_state and last_state.get("generation"):
-                full_response_text = last_state.get("generation", "")
-                yield self.format_sse_event("token", {"content": full_response_text})
+                full_response_text = extract_text_content(last_state.get("generation", ""))
+                if full_response_text:
+                    yield self.format_sse_event("token", {"content": full_response_text})
 
             if not full_response_text:
                 full_response_text = "I apologize, but I could not process your request at this time."

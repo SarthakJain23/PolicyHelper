@@ -6,6 +6,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from app.core.database import AsyncSessionLocal
 from app.models.chat import ChatSession
 from app.services.llm.factory import LLMProviderFactory
+from app.services.llm.utils import extract_text_content
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ async def generate_session_title_async(session_id: uuid.UUID, first_user_query: 
             )
 
             response = await fast_model.ainvoke([HumanMessage(content=prompt)])
-            new_title = response.content.strip().replace('"', '').replace("'", "")
+            new_title = extract_text_content(response.content).strip().replace('"', '').replace("'", "")
             if len(new_title) > 80:
                 new_title = new_title[:77] + "..."
 

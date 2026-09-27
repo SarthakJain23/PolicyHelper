@@ -2,6 +2,7 @@ import logging
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from app.services.llm.factory import LLMProviderFactory
+from app.services.llm.utils import extract_text_content
 from app.services.rag.workflow.state import GraphState
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ async def rewriter_node(state: GraphState, config: RunnableConfig) -> dict:
         )
 
         response = await fast_model.ainvoke([HumanMessage(content=formatted_prompt)])
-        rewritten = response.content.strip().replace('"', '').replace("'", "")
+        rewritten = extract_text_content(response.content).strip().replace('"', '').replace("'", "")
         
         logger.info(f"Query rewritten: '{raw_query}' -> '{rewritten}'")
         return {"rewritten_query": rewritten or raw_query}

@@ -87,8 +87,10 @@ export function useChatStream(sessionId: string | null) {
         );
 
         if (!response.ok) {
+          const errData = await response.json().catch(() => null);
           throw new Error(
-            `Server returned ${response.status}: ${response.statusText}`,
+            errData?.detail ||
+              `Server returned ${response.status}: ${response.statusText}`,
           );
         }
 

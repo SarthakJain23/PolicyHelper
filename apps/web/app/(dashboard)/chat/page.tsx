@@ -36,30 +36,24 @@ export default function ChatPage() {
     availableModels?.chat_models[0]?.id ||
     "gpt-4o";
 
-  const effectiveSessionId =
-    activeSessionId ?? (sessions.length > 0 ? sessions[0].id : null);
-
   // Citation Drawer State
   const [selectedCitation, setSelectedCitation] =
     useState<MessageCitation | null>(null);
   const [citationDrawerOpen, setCitationDrawerOpen] = useState(false);
 
   // Load session messages via TanStack Query hook
-  const sessionDetailQuery = useChatSession(effectiveSessionId);
+  const sessionDetailQuery = useChatSession(activeSessionId);
 
   const { sendMessage, isStreaming, streamingContent, streamingCitations } =
-    useChatStream(effectiveSessionId);
+    useChatStream(activeSessionId);
 
-  const handleCreateNewSession = async () => {
-    const newSession = await createSession({ title: "New Conversation" });
-    if (newSession) {
-      setActiveSessionId(newSession.id);
-    }
+  const handleCreateNewSession = () => {
+    setActiveSessionId(null);
   };
 
   const handleDeleteSession = async (id: string) => {
     await deleteSession(id);
-    if (effectiveSessionId === id) {
+    if (activeSessionId === id) {
       const remaining = sessions.filter((s) => s.id !== id);
       setActiveSessionId(remaining[0]?.id || null);
     }
@@ -71,13 +65,20 @@ export default function ChatPage() {
       provider: availableModels?.provider,
     };
 
-    let targetId = effectiveSessionId;
+    let targetId = activeSessionId;
     if (!targetId) {
-      const newSession = await createSession({ title: "New Conversation" });
-      if (newSession) {
-        targetId = newSession.id;
-        setActiveSessionId(newSession.id);
-      } else {
+      try {
+        const newSession = await createSession({
+          title: text.length > 40 ? `${text.slice(0, 37)}...` : text,
+        });
+        if (newSession && newSession.id) {
+          targetId = newSession.id;
+          setActiveSessionId(newSession.id);
+        } else {
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to create session on first message", e);
         return;
       }
     }
@@ -89,16 +90,18 @@ export default function ChatPage() {
     setCitationDrawerOpen(true);
   };
 
-  const currentMessages = sessionDetailQuery.data?.messages || [];
+  const currentMessages = activeSessionId
+    ? sessionDetailQuery.data?.messages || []
+    : [];
 
   return (
-    <DashboardShell>
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-3.5rem)]">
+    <DashboardShell className="overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {/* Collapsible Session History Sidebar */}
         {sidebarOpen && (
           <SessionList
             sessions={sessions}
-            activeSessionId={effectiveSessionId}
+            activeSessionId={activeSessionId}
             onSelectSession={(id) => setActiveSessionId(id)}
             onCreateSession={handleCreateNewSession}
             onUpdateSession={(id, payload) => updateSession({ id, payload })}
@@ -108,9 +111,9 @@ export default function ChatPage() {
         )}
 
         {/* Main Chat Interface */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-neutral-950">
+        <div className="flex flex-1 flex-col h-full min-h-0 overflow-hidden bg-white dark:bg-neutral-950">
           {/* Top Bar with Sidebar Toggle & Dynamic Model Selector */}
-          <div className="flex h-11 items-center justify-between px-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40">
+          <div className="flex h-11 shrink-0 items-center justify-between px-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40">
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
@@ -127,7 +130,9 @@ export default function ChatPage() {
               </Button>
 
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300 truncate max-w-xs">
-                {sessionDetailQuery.data?.title || "New Conversation"}
+                {activeSessionId
+                  ? sessionDetailQuery.data?.title || "Conversation"
+                  : "New Conversation"}
               </span>
             </div>
 
@@ -168,17 +173,21 @@ export default function ChatPage() {
           </div>
 
           {/* Message History & Live Stream */}
-          <MessageList
-            messages={currentMessages}
-            isStreaming={isStreaming}
-            streamingContent={streamingContent}
-            streamingCitations={streamingCitations}
-            onCitationClick={handleCitationClick}
-            onSuggestedClick={handleSendMessage}
-          />
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <MessageList
+              messages={currentMessages}
+              isStreaming={isStreaming}
+              streamingContent={streamingContent}
+              streamingCitations={streamingCitations}
+              onCitationClick={handleCitationClick}
+              onSuggestedClick={handleSendMessage}
+            />
+          </div>
 
           {/* Chat Prompt Input */}
-          <ChatInput onSend={handleSendMessage} disabled={isStreaming} />
+          <div className="shrink-0">
+            <ChatInput onSend={handleSendMessage} disabled={isStreaming} />
+          </div>
         </div>
 
         {/* Citation Detail Modal / Drawer */}

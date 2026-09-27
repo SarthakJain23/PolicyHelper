@@ -20,6 +20,10 @@ export function useChatSessions(includeArchived = false) {
     mutationFn: (payload: CreateSessionPayload = {}) =>
       chatApi.createSession(payload),
     onSuccess: (newSession) => {
+      queryClient.setQueryData(["chat", "session", newSession.id], {
+        ...newSession,
+        messages: [],
+      });
       queryClient.invalidateQueries({ queryKey: ["chat", "sessions"] });
       return newSession;
     },
@@ -81,6 +85,6 @@ export function useChatSession(sessionId: string | null) {
     queryKey: ["chat", "session", sessionId],
     queryFn: () => (sessionId ? chatApi.getSession(sessionId) : null),
     enabled: !!sessionId,
+    staleTime: 1000 * 30,
   });
 }
-

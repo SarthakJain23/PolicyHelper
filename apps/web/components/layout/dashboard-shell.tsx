@@ -3,13 +3,16 @@
 import Navbar from "@/components/layout/navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
 export default function DashboardShell({
   children,
+  className,
 }: {
   children: React.ReactNode;
+  className?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -53,9 +56,16 @@ export default function DashboardShell({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50/50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
+    <div className="flex h-screen flex-col bg-neutral-50/50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50 overflow-hidden">
       <Navbar />
-      <main className="flex-1 flex flex-col">{children}</main>
+      <main
+        className={cn(
+          "flex-1 flex flex-col min-h-0 overflow-y-auto",
+          className,
+        )}
+      >
+        {children}
+      </main>
     </div>
   );
 }
