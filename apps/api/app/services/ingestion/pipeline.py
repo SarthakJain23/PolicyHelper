@@ -1,7 +1,6 @@
 import logging
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import delete
 
 from app.core.database import AsyncSessionLocal
 from app.models.document import Document, DocumentStatus
