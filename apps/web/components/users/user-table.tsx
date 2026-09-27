@@ -23,6 +23,21 @@ interface UserTableProps {
   onResetPassword: (user: User) => void;
 }
 
+const getRoleBadgeStyle = (roleName: string) => {
+  switch (roleName.toUpperCase()) {
+    case "SUPER_ADMIN":
+      return "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-900/60 dark:bg-purple-950/50 dark:text-purple-300";
+    case "HR_ADMIN":
+      return "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/50 dark:text-blue-300";
+    case "MANAGER":
+      return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300";
+    case "EMPLOYEE":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300";
+    default:
+      return "border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300";
+  }
+};
+
 export default function UserTable({
   users,
   onEdit,
@@ -91,7 +106,7 @@ export default function UserTable({
                       <Badge
                         key={r.id}
                         variant="outline"
-                        className="text-[10px] py-0"
+                        className={`text-[10px] py-0 font-medium ${getRoleBadgeStyle(r.name)}`}
                       >
                         {r.name}
                       </Badge>
