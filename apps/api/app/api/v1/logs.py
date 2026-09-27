@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, extract_user_roles, is_admin_user
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.schemas.audit import AuditLogResponse
@@ -28,8 +28,8 @@ async def list_activity_logs(
     - Standard employees only see their own activity logs.
     - Admins/HR can see all logs or filter by specific user_id.
     """
-    user_roles = [r.name for r in current_user.roles]
-    is_admin = any(r in ["SUPER_ADMIN", "HR_ADMIN"] for r in user_roles)
+    user_roles = extract_user_roles(current_user)
+    is_admin = is_admin_user(current_user)
 
     stmt = (
         select(AuditLog)

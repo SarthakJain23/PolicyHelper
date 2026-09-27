@@ -1,14 +1,14 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
-from app.schemas.role import RoleResponse
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from app.schemas.role import RoleResponse, UserRole
 from app.schemas.department import DepartmentResponse
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str = Field(..., min_length=2, max_length=255)
-    role_names: list[str] = Field(default_factory=lambda: ["EMPLOYEE"])
+    role_names: list[str] = Field(default_factory=lambda: [UserRole.EMPLOYEE.value])
     department_id: uuid.UUID | None = None
 
 
@@ -30,8 +30,7 @@ class UserResponse(BaseModel):
     roles: list[RoleResponse]
     department: DepartmentResponse | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreatedWithPasswordResponse(BaseModel):

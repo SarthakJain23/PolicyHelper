@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from app.schemas.department import DepartmentResponse
+from app.schemas.role import UserRole
 
 
 class DocumentResponse(BaseModel):
@@ -21,8 +22,7 @@ class DocumentResponse(BaseModel):
     updated_at: datetime
     chunk_count: int = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentUploadMetadata(BaseModel):
@@ -30,5 +30,10 @@ class DocumentUploadMetadata(BaseModel):
     category: str = Field(default="GENERAL")
     department_id: uuid.UUID | None = None
     allowed_role_names: list[str] = Field(
-        default_factory=lambda: ["EMPLOYEE", "MANAGER", "HR_ADMIN", "SUPER_ADMIN"]
+        default_factory=lambda: [
+            UserRole.EMPLOYEE.value,
+            UserRole.MANAGER.value,
+            UserRole.HR_ADMIN.value,
+            UserRole.SUPER_ADMIN.value,
+        ]
     )

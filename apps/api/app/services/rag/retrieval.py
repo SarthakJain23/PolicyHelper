@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.chunk import DocumentChunk
 from app.models.document import Document, DocumentStatus
+from app.schemas.role import UserRole
 from app.services.llm.factory import LLMProviderFactory
 
 
@@ -33,7 +34,7 @@ class HybridRetriever:
         db: AsyncSession,
         top_k: int = 5,
     ) -> list[RetrievedChunk]:
-        is_admin = any(r in ["SUPER_ADMIN", "HR_ADMIN"] for r in user_roles)
+        is_admin = any(r in [UserRole.SUPER_ADMIN.value, UserRole.HR_ADMIN.value] for r in user_roles)
 
         # 1. Generate query embedding dynamically
         embeddings_model = await LLMProviderFactory.get_embeddings(db=db)

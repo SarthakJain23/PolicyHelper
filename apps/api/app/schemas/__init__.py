@@ -9,7 +9,7 @@ from app.schemas.department import (
     DepartmentUpdate,
     DepartmentResponse,
 )
-from app.schemas.role import RoleResponse
+from app.schemas.role import RoleResponse, UserRole
 from app.schemas.user import (
     UserCreate,
     UserUpdate,
@@ -68,6 +68,7 @@ __all__ = [
     "DepartmentUpdate",
     "DepartmentResponse",
     "RoleResponse",
+    "UserRole",
     "UserCreate",
     "UserUpdate",
     "UserResponse",
@@ -76,12 +77,6 @@ __all__ = [
     "DocumentUploadMetadata",
     "ChatMessageResponse",
     "ChatSessionCreate",
-    "ChatSessionUpdate",
-    "ChatSessionResponse",
-    "ChatSessionDetailResponse",
-    "ChatStreamRequest",
-    "MessageCitationResponse",
-    "AuditLogResponse",
     "ChatSessionUpdate",
     "ChatSessionResponse",
     "ChatSessionDetailResponse",

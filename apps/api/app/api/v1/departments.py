@@ -9,6 +9,7 @@ from app.core.security import get_current_user, require_roles
 from app.models.department import Department
 from app.models.user import User
 from app.models.audit import AuditLog
+from app.schemas.role import UserRole
 from app.schemas.department import (
     DepartmentCreate,
     DepartmentUpdate,
@@ -36,7 +37,7 @@ async def list_departments(
 @router.post("", response_model=DepartmentResponse, status_code=status.HTTP_201_CREATED)
 async def create_department(
     dept_data: DepartmentCreate,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Create a new department (Admin/HR only)."""
@@ -93,7 +94,7 @@ async def get_department(
 async def update_department(
     dept_id: uuid.UUID,
     dept_data: DepartmentUpdate,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Update department details (Admin/HR only)."""
@@ -151,7 +152,7 @@ async def update_department(
 @router.delete("/{dept_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_department(
     dept_id: uuid.UUID,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Soft delete / deactivate a department."""

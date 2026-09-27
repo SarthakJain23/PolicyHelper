@@ -5,6 +5,7 @@ from sqlalchemy import String, Text, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from app.core.database import Base
+from app.schemas.role import UserRole
 
 
 class DocumentStatus(str, Enum):
@@ -35,7 +36,12 @@ class Document(Base):
     )
     allowed_role_names: Mapped[list[str]] = mapped_column(
         ARRAY(String),
-        default=lambda: ["EMPLOYEE", "MANAGER", "HR_ADMIN", "SUPER_ADMIN"],
+        default=lambda: [
+            UserRole.EMPLOYEE.value,
+            UserRole.MANAGER.value,
+            UserRole.HR_ADMIN.value,
+            UserRole.SUPER_ADMIN.value,
+        ],
         nullable=False,
     )
     status: Mapped[str] = mapped_column(

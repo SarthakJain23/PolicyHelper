@@ -11,11 +11,13 @@ from app.core.security import (
     require_roles,
     get_password_hash,
     generate_random_password,
+    extract_user_roles,
 )
 from app.models.user import User
 from app.models.role import Role
 from app.models.department import Department
 from app.models.audit import AuditLog
+from app.schemas.role import UserRole
 from app.schemas.user import (
     UserCreate,
     UserUpdate,
@@ -28,7 +30,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("", response_model=list[UserResponse])
 async def list_users(
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
     department_id: uuid.UUID | None = None,
     role_name: str | None = None,
@@ -49,7 +51,7 @@ async def list_users(
     users = result.scalars().all()
 
     if role_name:
-        users = [u for u in users if any(r.name == role_name for r in u.roles)]
+        users = [u for u in users if role_name in extract_user_roles(u)]
 
     return users
 
@@ -57,7 +59,7 @@ async def list_users(
 @router.post("", response_model=UserCreatedWithPasswordResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """
@@ -88,7 +90,7 @@ async def create_user(
     roles = (await db.execute(roles_stmt)).scalars().all()
     if not roles:
         # Fallback to EMPLOYEE
-        default_role_stmt = select(Role).where(Role.name == "EMPLOYEE")
+        default_role_stmt = select(Role).where(Role.name == UserRole.EMPLOYEE.value)
         roles = (await db.execute(default_role_stmt)).scalars().all()
 
     # Generate secure random temporary password
@@ -132,7 +134,7 @@ async def create_user(
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: uuid.UUID,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Get single user profile by ID."""
@@ -154,7 +156,7 @@ async def get_user(
 async def update_user(
     user_id: uuid.UUID,
     user_data: UserUpdate,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Update user profile, roles, department, or active status (Admin/HR only)."""
@@ -206,7 +208,7 @@ async def update_user(
 @router.post("/{user_id}/reset-password", response_model=UserCreatedWithPasswordResponse)
 async def admin_reset_password(
     user_id: uuid.UUID,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Regenerate a random temporary password for a user and enforce password reset on next login."""

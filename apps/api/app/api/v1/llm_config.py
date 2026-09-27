@@ -9,6 +9,7 @@ from app.core.security import get_current_user, require_roles
 from app.core.crypto import CryptoService
 from app.models.user import User
 from app.models.organization import Organization, OrganizationLLMConfig
+from app.schemas.role import UserRole
 from app.schemas.llm_config import (
     TestAndDiscoverRequest,
     TestAndDiscoverResponse,
@@ -29,7 +30,7 @@ router = APIRouter(prefix="/llm-config", tags=["LLM Provider Configuration"])
 @router.get(
     "",
     response_model=list[LLMConfigResponse],
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def list_llm_configs(
     current_user: Annotated[User, Depends(get_current_user)],
@@ -47,7 +48,7 @@ async def list_llm_configs(
 @router.post(
     "/test-and-discover",
     response_model=TestAndDiscoverResponse,
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def test_and_discover_models(
     payload: TestAndDiscoverRequest,
@@ -102,7 +103,7 @@ async def test_and_discover_models(
 @router.post(
     "",
     response_model=LLMConfigResponse,
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def save_llm_config(
     payload: LLMConfigSaveRequest,
@@ -222,7 +223,7 @@ async def get_available_chat_models(
 @router.post(
     "/reindex",
     response_model=ReindexStatusResponse,
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def trigger_reindexing(
     payload: ReindexRequest,
@@ -252,7 +253,7 @@ async def trigger_reindexing(
 @router.get(
     "/reindex/{task_id}",
     response_model=ReindexStatusResponse,
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def get_reindex_status(
     task_id: str,

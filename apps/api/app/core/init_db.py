@@ -8,17 +8,18 @@ from app.models.role import Role
 from app.models.department import Department
 from app.models.user import User
 from app.models.organization import Organization
+from app.schemas.role import UserRole
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_ROLES = [
     {
-        "name": "SUPER_ADMIN",
+        "name": UserRole.SUPER_ADMIN.value,
         "description": "Full platform administration, user management, and system settings",
         "permissions": {"all": True},
     },
     {
-        "name": "HR_ADMIN",
+        "name": UserRole.HR_ADMIN.value,
         "description": "Policy document management, indexing, user invitations, and analytics",
         "permissions": {
             "documents:create": True,
@@ -33,7 +34,7 @@ DEFAULT_ROLES = [
         },
     },
     {
-        "name": "MANAGER",
+        "name": UserRole.MANAGER.value,
         "description": "Department lead with access to general and manager-level policies",
         "permissions": {
             "chat:access": True,
@@ -41,7 +42,7 @@ DEFAULT_ROLES = [
         },
     },
     {
-        "name": "EMPLOYEE",
+        "name": UserRole.EMPLOYEE.value,
         "description": "Standard company employee with access to general company policies",
         "permissions": {
             "chat:access": True,
@@ -86,7 +87,7 @@ async def init_db_data() -> None:
         admin_stmt = select(User).where(User.email == settings.FIRST_SUPERUSER_EMAIL.lower())
         existing_admin = (await session.execute(admin_stmt)).scalar_one_or_none()
         if not existing_admin:
-            super_role_stmt = select(Role).where(Role.name == "SUPER_ADMIN")
+            super_role_stmt = select(Role).where(Role.name == UserRole.SUPER_ADMIN.value)
             super_role = (await session.execute(super_role_stmt)).scalar_one()
 
             admin_user = User(

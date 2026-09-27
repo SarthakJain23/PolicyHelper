@@ -14,6 +14,7 @@ from app.core.security import (
     set_auth_cookies,
     clear_auth_cookies,
     get_current_user,
+    extract_user_roles,
 )
 from app.models.user import User
 from app.models.audit import AuditLog
@@ -65,7 +66,7 @@ async def login(
     await db.commit()
     await db.refresh(user)
 
-    role_names = [r.name for r in user.roles]
+    role_names = extract_user_roles(user)
     dept_id = str(user.department_id) if user.department_id else None
     dept_name = user.department.name if user.department else None
 
@@ -132,7 +133,7 @@ async def change_password(
     await db.commit()
     await db.refresh(current_user)
 
-    role_names = [r.name for r in current_user.roles]
+    role_names = extract_user_roles(current_user)
     dept_id = str(current_user.department_id) if current_user.department_id else None
     dept_name = current_user.department.name if current_user.department else None
 

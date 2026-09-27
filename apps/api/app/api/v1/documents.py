@@ -16,12 +16,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
-from app.core.security import get_current_user, require_roles
+from app.core.security import get_current_user, require_roles, extract_user_roles, is_admin_user
 from app.models.document import Document, DocumentStatus
 from app.models.chunk import DocumentChunk
 from app.models.department import Department
 from app.models.user import User
 from app.models.audit import AuditLog
+from app.schemas.role import UserRole
 from app.schemas.document import DocumentResponse
 from app.services.storage.factory import get_storage
 from app.services.ingestion.pipeline import process_document_ingestion
@@ -42,8 +43,8 @@ async def list_documents(
     Employees see documents allowed for their roles and department.
     Admins/HR see all documents.
     """
-    user_roles = [r.name for r in current_user.roles]
-    is_admin = any(r in ["SUPER_ADMIN", "HR_ADMIN"] for r in user_roles)
+    user_roles = extract_user_roles(current_user)
+    is_admin = is_admin_user(current_user)
 
     stmt = (
         select(Document, func.count(DocumentChunk.id).label("chunk_count"))
@@ -108,7 +109,7 @@ async def list_documents(
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
     background_tasks: BackgroundTasks,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
     file: UploadFile = File(...),
     title: str = Form(...),
@@ -218,8 +219,8 @@ async def download_document(
         )
 
     # RBAC check
-    user_roles = [r.name for r in current_user.roles]
-    is_admin = any(r in ["SUPER_ADMIN", "HR_ADMIN"] for r in user_roles)
+    user_roles = extract_user_roles(current_user)
+    is_admin = is_admin_user(current_user)
     if not is_admin:
         has_role = any(r in doc.allowed_role_names for r in user_roles)
         dept_matches = (
@@ -247,7 +248,7 @@ async def download_document(
 async def retry_document_ingestion(
     document_id: uuid.UUID,
     background_tasks: BackgroundTasks,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """
@@ -316,7 +317,7 @@ async def retry_document_ingestion(
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     document_id: uuid.UUID,
-    current_user: Annotated[User, Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    current_user: Annotated[User, Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Delete a document, its physical storage file, and its vector chunks."""

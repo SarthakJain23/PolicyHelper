@@ -15,6 +15,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
+from app.schemas.role import UserRole
 
 # Optional Bearer token extractor as fallback
 security_scheme = HTTPBearer(auto_error=False)
@@ -203,22 +204,37 @@ async def get_current_user(
     return user
 
 
-def require_roles(allowed_roles: Sequence[str]):
+def extract_user_roles(user: User | None) -> list[str]:
+    """Extract role name strings from a User model."""
+    if not user or not user.roles:
+        return []
+    return [role.name for role in user.roles]
+
+
+def is_admin_user(user: User | None) -> bool:
+    """Check if the user has SUPER_ADMIN or HR_ADMIN role."""
+    roles = extract_user_roles(user)
+    return any(r in [UserRole.SUPER_ADMIN, UserRole.HR_ADMIN] for r in roles)
+
+
+def require_roles(allowed_roles: Sequence[str | UserRole]):
     """Role-Based Access Control dependency factory."""
+    allowed_role_values = [r.value if isinstance(r, UserRole) else str(r) for r in allowed_roles]
+
     async def role_checker(
         current_user: Annotated[User, Depends(get_current_user)]
     ) -> User:
-        user_role_names = [role.name for role in current_user.roles]
+        user_role_names = extract_user_roles(current_user)
         
         # SUPER_ADMIN has access to everything
-        if "SUPER_ADMIN" in user_role_names:
+        if UserRole.SUPER_ADMIN in user_role_names:
             return current_user
 
         # Check if user has at least one of the allowed roles
-        if not any(role in user_role_names for role in allowed_roles):
+        if not any(role in user_role_names for role in allowed_role_values):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Operation not permitted for roles: {user_role_names}. Required: {list(allowed_roles)}",
+                detail=f"Operation not permitted for roles: {user_role_names}. Required: {allowed_role_values}",
             )
         return current_user
 

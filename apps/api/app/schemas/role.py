@@ -1,5 +1,13 @@
 import uuid
-from pydantic import BaseModel
+from enum import Enum
+from pydantic import BaseModel, ConfigDict
+
+
+class UserRole(str, Enum):
+    SUPER_ADMIN = "SUPER_ADMIN"
+    HR_ADMIN = "HR_ADMIN"
+    MANAGER = "MANAGER"
+    EMPLOYEE = "EMPLOYEE"
 
 
 class RoleResponse(BaseModel):
@@ -8,5 +16,5 @@ class RoleResponse(BaseModel):
     description: str | None
     permissions: dict
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+

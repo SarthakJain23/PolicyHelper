@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user, require_roles
 from app.models.user import User
 from app.models.organization import Organization
+from app.schemas.role import UserRole
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationUpdate,
@@ -44,7 +45,7 @@ async def get_organization(
 @router.put(
     "",
     response_model=OrganizationResponse,
-    dependencies=[Depends(require_roles(["SUPER_ADMIN", "HR_ADMIN"]))],
+    dependencies=[Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.HR_ADMIN]))],
 )
 async def update_organization(
     payload: OrganizationUpdate,
